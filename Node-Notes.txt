@@ -1,0 +1,386 @@
+					Node.js
+............................................................................................
+
+What is Node.js?
+
+  Node.js is platform and runtime for javascript lang.
+
+Platform: collection of tools
+Runtime: Execution engine where javascript can be executed..
+
+Why Node.js?
+
+History of Node.js:
+
+Ryan Dahl who created Node.js.When he was doing phd in math, who got bored in math , so who
+started working on different project by looking the project "flicker" , he was thinking how flicker uploades photos into server.
+
+He attended conference "nginx" conference where who insipred "Non Blocking" Web Server.
+
+He started thinking how to build nginx like server to build web application -  non blocking webservers.
+
+He was thinking how to put java language, but java language was not ready for non blocking computing.Why cant use "javascript", javascript inside browser is non blocking language.
+
+The same time, google published "open source javascript runtime" called v8.
+
+Ryan thought using v8 we can build arch for building non blocking web servers.===>Node.js
+
+
+-Blocking and Non Blocking:
+...........................
+
+File Descriptor:
+................
+
+-FD is a datastructure presented inside os kernal at very low level
+-FD is mapper between os and hardware layer
+-FD is entry and exit point of os.
+
+.............................................................................................
+
+Blocking IO Example: java:
+
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+public class CopyBytes {
+    public static void main(String[] args) throws IOException {
+
+        FileInputStream in = null;
+        FileOutputStream out = null;
+
+        try {
+            in = new FileInputStream("xanadu.txt");
+            out = new FileOutputStream("outagain.txt");
+            int c;
+
+            while ((c = in.read()) != -1) {
+                out.write(c);
+            }
+
+	   //some other api call
+	    myapi(); // will not be called until read operation and write operation is            completed
+
+        } finally {
+            if (in != null) {
+                in.close();
+            }
+            if (out != null) {
+                out.close();
+            }
+        }
+    }
+}
+////////////////////////////////////////////////////////////////////////////////////////////
+
+Blocking io means:
+
+ Application process is waiting until data is read from the kernal.
+ if data is availble inside application only, it will move the next cycle.
+............................................................................................
+				Multithreading and Networking
+............................................................................................
+
+Multi Threading and IO (Blocking IO):
+
+In General application platforms(jvm,CLR)(process) is multi threaded.
+
+WebServers and Web Containers for any technology(java,.net,python,php) are multi threaded.
+
+
+Web Containers and Request handling:
+...................................
+
+Each Request is mapped with a single thread
+
+Request Per Thread Model
+
+100 request === 100 Threads
+
+Eg:
+
+1.client-1 asks 1 gb file from the web server
+
+ client-----request-----|WebServer----create/use a thread --starts io operations
+ client-----request-----|WebServer----create/use a thread --starts io operations
+ client-----request-----|WebServer----create/use a thread --starts io operations
+ client-----request-----|WebServer----create/use a thread --starts io operations
+ client-----request-----|WebServer----create/use a thread --starts io operations
+ client-----request-----|WebServer----create/use a thread --starts io operations
+
+
+Threading Model:
+
+ -  Each Request is assigned to thread
+
+C10k : concurrently handling ten thousand connections
+
+A web server should handle 10k connections at the same point of time(may be 1sc/1min)
+
+C10k is one of the real time problem, expectation was if web server able to handle
+10k connections, then it is good infra structure,so i dont need to add more machines.
+
+How to reduce servers , how to utilize the existing hardware resouces.
+
+               "The birth of non blocking technology" / How to reduce threads.
+
+
+Problems of Multi Threaded Models:
+
+1.Context Switch:
+   - if a thread is assigned for a client request, that request takes more time to process.
+ thread need to be paused.
+    Moving a thread from sleep to running(active) --- active to sleep - ctx switch..
+
+cpu takes much time on thread schduling, so it decreases the performance of the server.
+
+2.memory
+   Every thread eats upto 1MB of memory.
+
+............................................................................................
+
+Non Blocking io apis:
+
+In 2000,Linux Operating system started providing, apis in order to perform non blocking io operation.
+
+1.select
+
+2.poll
+
+Select vs poll.
+
+3.epoll
+
+What is epoll?
+
+ Epoll is a program which monitors fd table.
+ Fd table is array.
+ epoll has a for loop which iterates fd table
+
+ epollfd = epoll_create1(0);
+
+infinit loop
+ for(;;){
+     read array(fd) entries from 0th index
+     checks data availablity from the hardware
+     if yes
+	 copy data from the hardware to kernal buffer
+     else
+       move next index
+      checks daa availablity from the hardware for 1st index.
+    ....
+    move until the last index.
+   
+ }
+
+
+Steps:
+
+1.thread starts  calling sys call for network io, while doing, it registers a handler function which will be used later by the thread.
+
+2.thread gets control immediately since kernal relases the control
+
+3.Thread starts processing other tasks
+
+Kernal side
+
+1. loop is running by watching fds
+
+2. data is available
+
+3. kernal copies data into buffer
+
+4. kernal emits event
+
+Application
+
+4. Receive events process the event by assigning handler function.
+
+5. Handler function gets called, send data to Caller(user).
+
+.............................................................................................
+				How node implements the nonblocking arch
+..............................................................................................
+
+Node.js:
+
+-Multi platform(any os), non blocking ,event processing archiecture.
+-Reduces more threads,having limited threads-single thread for event processing.
+-Suitable for large network concurrency applications.
+
+ 1000 requests = 1 thread.
+Node components:
+
+V8:
+
+
+libuv:
+  libuv is a multi-platform support library with a focus on asynchronous I/O.
+  libuv is collection of c apis for multiple operatings
+    -libuv works with epoll in linux
+    -libuv works with kqueue in mac/open bsd os
+    -libuv works with iocp in windows
+
+Features:
+
+Full-featured event loop backed by epoll, kqueue, IOCP, event ports.
+Asynchronous TCP and UDP sockets
+Asynchronous DNS resolution
+Asynchronous file and file system operations
+File system events
+ANSI escape code controlled TTY
+IPC with socket sharing, using Unix domain sockets or named pipes (Windows)
+Child processes
+Thread pool
+Signal handling
+High resolution clock
+Threading and synchronization primitives
+
+
+libuv contains:
+
+1. event loop thread:
+
+  This is demaon thread, starts spinning for listening for incomming events from os kernal space.
+
+2.Thread Pools
+   libuv maintains set of threads other than event loop thread for doing "BLOCKING" IO operations.
+
+Warining; 
+   dont over use thread pools , because if use more threads from the thread poll then it impacts performance,memory...
+   Dont block event loop thread.
+
+////////////////////////////////////////////////////////////////////////////////////////////
+                                NonBlocking and Async implementation
+............................................................................................
+
+In order to write non blocking  apps.
+
+ -Language/Platform must provide high level apis
+	 -Node provides lot of high level apis 
+ -We need to provide listener function/callback function, for handling result
+
+Listener function has two phases:
+
+1.Function must be registered before calling kernal
+   Registernation is based on event name.
+
+2.Functions gets called by thread once the event is given
+
+Every listener function is higher order function : Function as parameter.
+
+
+How javascript /node understands that programs need proceed by event loops thread.
+what are blocking api and what are non blocking api.
+
+->All apis are generally blocking except apis which binds with non blocking apis.
+
+eg:
+ console.log() - blocking
+
+Node provides non blocking category of apis
+
+1.timers
+
+2.General fs io apis
+
+3.all network api
+   http,tcp,udp
+
+
+All non blockings are powered "handler/callback/listener" functions.
+
+Listener functions are generally higher order function: Passed as parameter.
+
+
+Non blocking coding Styles:
+
+Note: All are same but just wrappers on top that.
+
+1.callback style /listener
+
+2.Promise style : wrapper for callbacks
+
+3.async functions and await : wrapper for promise.
+
+
+Common Non Blocking Apis provided by node
+
+1.timers
+2.file system apis
+3.networking apis
+etc....
+
+1.timers
+
+1.settimeout
+
+//
+
+function blockMe(message){
+   console.log(message)
+}
+function delay(action) {
+    //non blocking api
+    setTimeout(action, 5000)
+}
+
+blockMe('starting')
+delay(function () {
+    console.log('i am delayed function!!!!')
+})
+blockMe('ending')
+
+//arrow version.
+
+const blockMe = message => console.log(message)
+
+const delay = action => {
+    //non blocking api
+    setTimeout(action, 5000)
+}
+
+blockMe('starting')
+delay(() => console.log('i am delayed function!!!!'))
+blockMe('ending')
+
+
+Use case : what if async function returns data.
+
+const blockMe = message => console.log(message)
+
+const delay = action => {
+    //non blocking api
+    let response = 'Data from server'
+    setTimeout(action, 5000,response)
+}
+
+blockMe('starting')
+delay(response => console.log(response))
+blockMe('ending')
+..............................................................................................
+					Nested Callbacks
+..............................................................................................
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
