@@ -363,8 +363,787 @@ blockMe('ending')
 					Nested Callbacks
 ..............................................................................................
 
+ The output of one callback, will be input to another callback.
+
+Use case
+
+ - call getUser api, which returns user if not , throw error.
+
+ - Based on user i need to call login method, if login failed throw error
+
+ - Based on login output, i need to call dashboard
+
+//nested callbacks ; the output of one callback will be input to the another callback.
+
+const getUser = (resolve, reject) => {
+    console.log('Get User is called');
+    //biz logic
+    let user = { id: 1, name: 'admin', password: 'admin' }
+    let error = { code: 404, message: 'User not found' }
+    //user = null;
+    if (user) {
+        setTimeout(resolve, 1000, user);
+    } else {
+        setTimeout(reject, 1000, error);
+    }
+};
+
+const login = (user, resolve, reject) => {
+    console.log('login is called');
+
+    //login logic
+    let status = 'Login success';
+    let error = { code: 404, message: 'Login failed' }
+    if (user.name === 'admin' && user.password === 'admin') {
+        setTimeout(resolve, 1000, status);
+    }
+    else {
+        setTimeout(reject, 1000, error);
+    }
+
+}
+const showPage = (status, resolve, reject) => {
+    console.log('Show page is called');
+
+    //login logic
+    let adminPage = 'Admin Page';
+    let guestPage = 'Guest Page'
+    if (status === 'Login success') {
+        setTimeout(resolve, 1000, adminPage);
+    }
+    else {
+        setTimeout(reject, 1000, guestPage);
+    }
+
+}
 
 
+getUser(user => {
+    login(user, status => {
+        showPage(status, page => {
+            console.log(page);
+        }, errorPage => {
+            console.error(errorPage)
+        })
+    }, err => {
+        console.error(err);
+    });
+}, err => {
+    console.error(err);
+});
+
+The Problems of Nested Callbacks:
+................................
+
+Questions:
+
+1.Whether this code is able to understand quickly
+2.Whether this code is able to debug
+3.Whehter this code is scalable?
+4.whether this code is maintaiable?
+
+fs.readdir(source, function (err, files) {
+  if (err) {
+    console.log('Error finding files: ' + err)
+  } else {
+    files.forEach(function (filename, fileIndex) {
+      console.log(filename)
+      gm(source + filename).size(function (err, values) {
+        if (err) {
+          console.log('Error identifying file size: ' + err)
+        } else {
+          console.log(filename + ' : ' + values)
+          aspect = (values.width / values.height)
+          widths.forEach(function (width, widthIndex) {
+            height = Math.round(width / aspect)
+            console.log('resizing ' + filename + 'to ' + height + 'x' + height)
+            this.resize(width, height).write(dest + 'w' + width + '_' + filename, function(err) {
+              if (err) console.log('Error writing file: ' + err)
+            })
+          }.bind(this))
+        }
+      })
+    })
+  }
+})
+
+"Callback Hell":
+................
+
+ -It is not bug or error in code
+ -It is way of writing callback based program
+ -Callback based non blocking programming hard to understand,maintain,debug,scale Which 
+  called as "Callback Hell".
+
+How to write better async/non blocking code without writings callbacks?
+
+-Generally without callbacks not possible to write async/non blocking code.
+-Rather we can abstract complexity of writting callbacks.
+
+In 2005, JQUERY team started with working complex callback patterns, they found callback hell problem.
+
+They proposed a  Design pattern to write better callback programming(Async) programming.
+
+  "Promise".
+
+Promise is design pattern which hides complexity of callback patterns
+
+
+Since Promise is design pattern, many people have implemented Promise design pattern.
+
+1.JQuery -first promise implementation
+2.many libs and frameworks
+
+
+...........................................................................................
+
+In order standarize , ECMA committe decided to include Promise Design pattern at language level .(ES 6)
+2012 E6 Commit introduced promise design pattern  as  "Promise" Object  in javascript.
+
+
+
+Promises and non blocking,async and callback hell issues:
+.........................................................
+
+features of Promise Object:
+
+1.Promise by deafult is Async. Which implements timer api with 0 ms .
+
+Promise can be used with any async callback based  implementations.
+
+
+Objective:
+
+ To remove callbacks in async/non blocking code. write cleaner async programming.
+ To remove complex callback chaining code.
+
+Promise Implemenation:How to create Promise Object
+
+1. Create Promise Object from Promise contructor -  new Promise()
+2. Create Promise object from factory apis       - Promise.resolve(), Promise.reject()
+
+Promise object methods:
+1.then - success
+2.catch - errors
+3.finally - clean up
+factory api to create Promise object
+4.resolve
+5.reject
+.......................................
+6.all
+7.race
+
+Promise with factory pattern: success usecase
+
+//callback based
+// const delay = action => {
+//     setTimeout(action, 0)
+// }
+// delay(res=>console.log(res))
+
+const blockMe = message => console.log(message)
+const delay = () => {
+    return Promise.resolve('Hello');
+}
+
+blockMe('starting')
+delay().then(res => console.log(res))
+blockMe('ending')
+
+Promise with factory pattern : Error Use case
+
+const blockMe = message => console.log(message)
+const delay = () => {
+    return Promise.reject('somethingwent wrong');
+}
+
+blockMe('starting')
+delay()
+.then(res => console.log(res))
+.catch(err=>console.log(err))
+blockMe('ending')
+
+Promise with factory pattern: resolve and reject
+
+
+const blockMe = message => console.log(message)
+const login = (username, password) => {
+    if (username === 'admin' && password === 'admin') {
+        return Promise.resolve('login success')
+    } else {
+        return Promise.reject('Login Failed')
+    }
+}
+
+blockMe('starting')
+login('admin', 'admin')
+    .then(res => console.log(res))
+    .catch(err => console.log(err));
+login('foo', 'bar')
+    .then(res => console.log(res))
+    .catch(err => console.log(err));
+blockMe('ending')
+............................................................................................
+
+How to convert existing callback based non blocking code into Promise Powered?
+
+ Using Promise Constructor pattern.
+
+//callback code
+const login = (username, password, resolve, reject) => {
+    if (username === 'admin' && password === 'admin') {
+        setTimeout(resolve, 1000, 'login success')
+    } else {
+        setTimeout(reject, 1000, 'login failed')
+
+    }
+}
+login('admin', 'admin', status => console.log(status), error => console.log(error))
+
+const auth = (username, password) => {
+    return new Promise((resolve, reject) => {
+        if (username === 'admin' && password === 'admin') {
+            setTimeout(resolve, 2000, 'login success-Promise')
+        } else {
+            setTimeout(reject, 2000, 'login failed-Promise')
+        }
+    });
+}
+auth('admin', 'admin')
+    .then(res => console.log(res))
+    .catch(err => console.log(err));
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+Callback Hell and Promises : How to solve Callback Issues?
+
+const getUser = () => {
+    console.log('Get User is called');
+    //biz logic
+    return new Promise((resolve, reject) => {
+        let user = { id: 1, name: 'admin', password: 'admin' }
+        let error = { code: 404, message: 'User not found' }
+        //user = null;
+        if (user) {
+            setTimeout(resolve, 1000, user);
+        } else {
+            setTimeout(reject, 1000, error);
+        }
+    })
+};
+
+const login = user => {
+    console.log('login is called');
+    return new Promise((resolve, reject) => {
+        //login logic
+        let status = 'Login success';
+        let error = { code: 404, message: 'Login failed' }
+        if (user.name === 'admin' && user.password === 'admin') {
+            setTimeout(resolve, 1000, status);
+        }
+        else {
+            setTimeout(reject, 1000, error);
+        }
+    })
+
+}
+const showPage = status => {
+    console.log('Show page is called');
+    return new Promise((resolve, reject) => {
+        //login logic
+        let adminPage = 'Admin Page';
+        let guestPage = 'Guest Page'
+        if (status === 'Login success') {
+            setTimeout(resolve, 1000, adminPage);
+        }
+        else {
+            setTimeout(reject, 1000, guestPage);
+        }
+    });
+
+}
+
+
+// getUser(user => {
+//     login(user, status => {
+//         showPage(status, page => {
+//             console.log(page);
+//         }, errorPage => {
+//             console.error(errorPage)
+//         })
+//     }, err => {
+//         console.error(err);
+//     });
+// }, err => {
+//     console.error(err);
+// });
+
+getUser()
+    .then(user => {
+        login(user)
+            .then(status => {
+                showPage(status)
+                    .then(page => {
+                        console.log(page)
+                    })
+                    .catch(err => {
+                        console.log(err);
+                    })
+            })
+            .catch(err => console.log(err))
+    })
+    .catch(err => console.log(err));
+//////
+getUser()
+    .then(user => {
+        return login(user) //return Promise
+    })
+    .then(status => {
+        return showPage(status)//return Promise
+    })
+    .then(page => console.log(page))
+    .catch(err => console.log(err));
+
+/////
+getUser()
+    .then(user => login(user))
+    .then(status => showPage(status))
+    .then(page => console.log(page))
+    .catch(err => console.log(err));
+
+//Using destrucing syntax: method reference
+const { log } = console;;
+getUser()
+    .then(login)
+    .then(showPage)
+    .then(log)
+    .catch(log);
+
+.............................................................................................
+If code grows with many promises, you can see more "thenables",Which leads the problem called
+"Promise Hell".
+
+Promise Hell:
+
+ In large code base, you can see many "thenables", how to reduce thenables.
+
+ES 7 introduced even simple keywords , looks like sync program/sequencial call.
+"Sync style of async programm"
+
+"async function and await keyword".
+
+
+const { log } = console;;
+getUser()
+    .then(login)
+    .then(showPage)
+    .then(log)
+    .catch(log);
+
+The above code can be reduced.
+
+const getUser = () => {
+    console.log('Get User is called');
+    //biz logic
+    return new Promise((resolve, reject) => {
+        let user = { id: 1, name: 'admin', password: 'admin' }
+        let error = { code: 404, message: 'User not found' }
+        //user = null;
+        if (user) {
+            setTimeout(resolve, 1000, user);
+        } else {
+            setTimeout(reject, 1000, error);
+        }
+    })
+};
+
+const login = user => {
+    console.log('login is called');
+    return new Promise((resolve, reject) => {
+        //login logic
+        let status = 'Login success';
+        let error = { code: 404, message: 'Login failed' }
+        if (user.name === 'admin' && user.password === 'admin') {
+            setTimeout(resolve, 1000, status);
+        }
+        else {
+            setTimeout(reject, 1000, error);
+        }
+    })
+
+}
+const showPage = status => {
+    console.log('Show page is called');
+    return new Promise((resolve, reject) => {
+        //login logic
+        let adminPage = 'Admin Page';
+        let guestPage = 'Guest Page'
+        if (status === 'Login success') {
+            setTimeout(resolve, 1000, adminPage);
+        }
+        else {
+            setTimeout(reject, 1000, guestPage);
+        }
+    });
+
+}
+
+// const { log } = console;;
+// getUser()
+//     .then(login)
+//     .then(showPage)
+//     .then(log)
+//     .catch(log);
+
+async function main() {
+
+    try {
+        const user = await getUser();
+        const status = await login(user);
+        const page = await showPage(status);
+        console.log(user, status, page);
+    }
+    catch (err) {
+        console.log(err);
+    }
+
+}
+main()
+
+Promise Chaning:Nested Promises:
+
+ The output of one promise , will be input to the another promise.
+
+Promise Composition:
+
+ The Calling many async/non blocking apis, parreally, all results will be settled 
+once all promise/non blocking apis are completed.
+
+resolves when every input Promise has resolved or
+rejected when any of the input Promise has rejected.
+
+
+function getValue1() {
+
+    //return Promise.resolve(1)
+    return new Promise((resolve, reject) => {
+        setTimeout(resolve, 10000, 1);
+    })
+}
+function getValue2() {
+    return new Promise((resolve, reject) => {
+        setTimeout(resolve, 15000, 2);
+    })
+}
+function getValue3() {
+    return Promise.resolve(3)
+}
+function getValue4() {
+    // return new Promise((resolve, reject) => {
+    //     setTimeout(reject, 6000, "error");
+    // })
+    return Promise.resolve(4)
+
+}
+
+// Promise.all([getValue1(), getValue2(), getValue3(),getValue4()])
+//     .then(res => {
+//         console.log(res)
+//     })
+//     .catch(err => {
+//         console.log(err);
+//     });
+
+async function main() {
+
+    try {
+        const res = await Promise.all([getValue1(), getValue2(), getValue3(), getValue4()])
+        console.log(res);
+    }
+    catch (err) {
+        console.log(err);
+    }
+}
+main();
+
+Promise.race() vs. Promise.all()
+
+The Promise.all() returns a promise that resolves to an array of values from the input promises while the Promise.race() returns a promise that resolves to the value from the first settled promise.
+
+.............................................................................................
+					Modularity:
+.............................................................................................
+
+What is Modularity?
+  Breaking application into smaller units.
+
+Types of Modularity?
+
+1.Physicall modularity
+  
+  folders,files :  code is kept/organized into files and folders
+
+2.Logical modularity
+  code is kept into classes,functions,objects
+
+Java:
+
+ folders/files
+  com/ibm/util/Utility.java
+
+ package com.ibm.util
+
+ class Utility{
+
+ }
+
+
+
+What about javascript Modularity?
+
+1.Physicall modularity
+   fodlers/file based
+   scripts/index.js
+2.logical modularity
+  js does not offer logical modularity at language level.
+
+Once js started growing in large scale, dev struck to organize code.
+
+2000, Smart developers started thinking about how to modualrize js code.
+
+Module design patterns came.
+
+1.Namespace design pattern : 2000 : jquery
+2.AMD -Async Module Defintion : dojo
+---------------------------------------------------------
+3.CJS - Common JS =  namespace + amd -2005
+4.ES 6 Module design pattern  = amd + cjs - 2012 ECMA Committe introduced this pattern
+------------------------------------------------------------
+5.System = AMD = CJS + ES 6
+6.UMD = NAMESPACE + AMD + CJS = ES 6
+
+
+only two design patterns are used in development
+
+1.CJS - Common JS =  namespace + amd
+2.ES 6 Module design pattern  = amd + cjs
+
+CJS ; implemented inside node js. node supports commonjs by default.
+
+I can organize the code , based on these patterns, but what about runtimes?
+
+  js runtime never suppport these patterns directly 
+  each design pattern is lib.
+
+ Loaders : it is simple js lib to help link and load js files.
+
+Node.js has built in cjs loader and linker, so we dont need to install loaders
+Browers has no built in support for any modular design pattern natively except , namespace.
+
+////////////////////////////////////////////////////////////////////////////////////////////
+
+				COMMONJS - Nodejs
+////////////////////////////////////////////////////////////////////////////////////////////
+
+Two important task in modules:
+
+1.how to link files
+
+  We need loaders and linkers - node.js provides by default
+eg
+java : import 
+
+cjs : require('fileNametoBelinked')
+
+Use case 1 : how to link files 
+
+src/mylib.js
+console.log('mylib')
+
+src/index.js
+const res = require('./mylib')
+
+$node src/index.js
+mylib
+
+2.how to share code
+
+What is code , What code can be shared to other files.
+
+code : collection of variables,functions,classes,objects,arrays.
+
+Ways of code sharing:
+
+1.Pack the code into one object(literal) which you want to share
+
+
+
+-exports
+   -used to share code in form of object
+   -code is packed inside object and shared that object
+-module.exports
+   -used to share code as it is.
+
+mycode.js
+/**
+ * function require(fileName){
+ * //exports is variable, its value is plain literal object.
+ *  let exports = {}   
+ *  *  exports.firstName = ''
+ * 
+ *   return exports
+ * }
+ */
+
+exports.firstName = 'Subramanian'
+exports.lastName = 'Murugan'
+exports.age = 41
+exports.isValid = true
+exports.skills = ['node','microservices','java']
+exports.calculate = function(){
+    return 100
+}
+
+index.js
+// const res = require('./mycode')
+// console.log(res)
+// console.log(res.firstName)
+
+const {firstName,lastName,skills,calculate} = require('./mycode')
+
+console.log(firstName,lastName,skills,calculate())
+
+
+-module.exports
+   -used to share code as it is.
+
+
+Export class and later you create object for that class
+
+Greeter.js
+
+class Greeter {
+    constructor() {
+
+    }
+    sayHello(name) {
+        return `Hello ${name}`
+    }
+}
+
+//send a class 
+module.exports = Greeter;
+
+
+index.js
+// const test = require('./Greeter');
+// let greetMe = new test();
+// console.log(greetMe.sayHello('subramanian'))
+
+const Greeter = require('./Greeter')
+let greetMe = new Greeter();
+console.log(greetMe.sayHello('subramanian'))
+
+
+Export Object and later you can use object
+
+HelloService.js
+
+class HelloService {
+    constructor() {
+
+    }
+    sayHello(name) {
+        return `Hello ${name}`
+    }
+}
+module.exports = new HelloService();
+
+index.js
+// const helloService = require('./HelloService')
+const { sayHello } = require('./HelloService')
+
+console.log(sayHello('Subramanian'))
+..............................................................................................
+
+folders and file structures:
+.............................
+
+Objective:
+ Build api
+
+src
+ |
+ services
+ mock-data
+ app.js
+
+
+services/todo.service.js
+const TODOS = require('../mock-data/todo')
+
+class TodoService {
+    //api:async
+    findAll() {
+        return new Promise((resolve, reject) => {
+            setTimeout(resolve, 1000, TODOS)
+        });
+    }
+    //add apis
+    save(todo) {
+
+    }
+    findByid(id) {
+
+    }
+    fetchCompletedTodos() {
+
+    }
+    remove(id){
+
+    }
+    update(id){
+        
+    }
+}
+module.exports = new TodoService();
+
+src/mock-data/todo.js
+note: https://jsonplaceholder.typicode.com/todos
+go to this link and copy all data and paste into your code
+
+module.exports = [
+    {
+        userId: 1,
+        id: 1,
+        title: "delectus aut autem",
+        completed: false
+    }]
+
+src/app.js
+const { findAll } = require('./services/Todo.service');
+
+async function main() {
+    try {
+        const todos =  await findAll();
+        console.log(todos)
+    }
+    catch (err) {
+        console.log(err);
+    }
+}
+main();
+//////////////////////////////////////////////////////////////////////////////////////////////						Node.js api modules
+..............................................................................................
+
+
+Types of modules:
+
+1.custom module
+  built by us
+2.built in modules
+   provided by node.js  
+3.provided by third party/community
+  libs,frameworks
 
 
 
