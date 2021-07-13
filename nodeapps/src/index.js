@@ -1,11 +1,31 @@
-const blockMe = message => console.log(message)
+const http = require('http');
+const { log } = console;
 
-const delay = action => {
-    //non blocking api
-    let response = 'Data from server'
-    setTimeout(action, 5000,response)
-}
+const port = 3000;
 
-blockMe('starting')
-delay(response => console.log(response))
-blockMe('ending')
+const server = http.createServer((req, res) => {
+
+    let body = '';
+    //attach data event on request object
+    req.on('data', chunk => {
+        body += chunk;
+        log(body);
+    });
+
+    res.end("Hello,Node")
+    //attach close event on response event
+    res.on('close', () => {
+        log('response close event is called')
+    });
+    res.on('finish', () => {
+        log('response has been sent /committed')
+    });
+});
+
+server.listen(port, () => {
+    console.log(`Http Server listens @ ${port}`)
+});
+
+server.on('request', (req, res) => {
+    log(`request is recieved on ${port} -method is ${req.method} url ${req.url}`)
+})
