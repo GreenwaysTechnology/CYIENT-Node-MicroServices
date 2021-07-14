@@ -2014,24 +2014,590 @@ if you install third party modules , into your project, node distributes npm too
 
 
 
+installing module:
+
+>npm install  moduleName  --options
+>npm i moduleName --options
+
+
+>npm install module 
+  here no option is told, means default is --save
+
+>npm i module
+
+options:
+ --save 
+ --save-dev
+ --production
+ -g
+
+How to install lodash?
+
+npm install lodash --save
+
+package.json
+{
+  "name": "nodeapps",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Subramanian Murugan",
+  "license": "ISC",
+  "dependencies": {
+    "lodash": "^4.17.21"
+  }
+}
+
+
+index.js
+
+const _ = require('lodash')
+
+console.log(_.sum([1,2,3]))
+/////////////////////////////////////////////////////////////////////////////////////////////
+Global Modules:
+
+npm install module -g --global
+
+ npm install module -g
+
+C:\Users\sasub\AppData\Roaming\npm -- here only all global modules will be installed.
+
+
+Why Global Modules:
+
+ -Tools
+   compilers,webservers,build tools,testing runtime, framework runtime, cli tools for project    creations.
+
+yarn - npm
+
+Demo:
+....
+
+npm install module-name(tool) -g
+
+mocha : unit testing framwork, is used to run java script unit testing on node and browser.
+
+npm install --global mocha
+npm install -g mocha
+Steps:
+
+create test folder
+ test
+create spec file
+test
+  -demo.spec.js
+var assert = require('assert');
+describe('Array', function() {
+  describe('#indexOf()', function() {
+    it('should return -1 when the value is not present', function() {
+      assert.equal([1, 2, 3].indexOf(4), -1);
+    });
+  });
+});
+
+var assert = require('chai').assert
+  , foo = 'bar'
+  , beverages = { tea: [ 'chai', 'matcha', 'oolong' ] };
+
+assert.typeOf(foo, 'string'); // without optional message
+assert.typeOf(foo, 'string', 'foo is a string'); // with optional message
+assert.equal(foo, 'bar', 'foo equal `bar`');
+assert.lengthOf(foo, 3, 'foo`s value has a length of 3');
+assert.lengthOf(beverages.tea, 3, 'beverages has 3 types of tea');
+
+C:>mocha
+
+
+  Array
+    #indexOf()
+      √ should return -1 when the value is not present
+
+
+  1 passing (8ms)
+.............................................................................................
+				Automation
+.............................................................................................
+
+How to use javascript for automation?
+
+
+We can automate js applications.
+
+write all auotomation steps inside scripts
+
+ "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+
+
+How to use javascript for automation?
+
+
+We can automate js applications.
+
+write all auotomation steps inside scripts
+
+ "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+
+key: value
+
+key is called command-script command
+value is task to be executed. ; task could be any thing.
+
+command can be built in or custom commands
+
+npm provides lot of built in commands
+
+start,test,postinstall,preinstall..........
+
+How to run node applications?
+
+1.node folderName/filename.js
+
+2.npm start
+via script
+how to run script
+
+>npm commandname ---incase of built in command
+>npm start
+
+>npm run commandname - custom commands
+>npm run subu
+
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start" : "node src/app.js",
+    "subu"  :"node src/app.js"
+  },
+
+npm test
+npm start
+npm run subu
+//////////////////////////////////////////////////////////////////////////////////////////////	
+				Scripts and Global Module
+..............................................................................................
+
+Scripts and Global Module:
+
+-Global modules are used for tooling purpose like compilers,build tools,servers,test runners(mocha).
+
+Globals has some issues:
+
+1.version and compablity issue for new projects
+
+
+Steps:
+
+1.npm uninstall mocha -g
+
+2.>mocha --help
+'mocha' is not recognized as an internal or external command,
+operable program or batch file.
+
+3.install mocha locally
+
+ npm install mocha --save-dev
+
+4.>mocha
+'mocha' is not recognized as an internal or external command,
+operable program or batch file.
+
+Why i am getting error?
+  because mocha is command, we cant run directly.
+
+5.solution is run via scripts
+
+package.json
+"scripts": {
+    "test": "mocha",
+    "start": "node src/index.js",
+    "subu": "node src/index.js"
+  }
+
+npm test
+
+> nodeapps@1.0.0 test C:\session\ibm\2021\june\nodemicroservices\nodeapps
+> mocha
 
 
 
+  Array
+    #indexOf()
+      √ should return -1 when the value is not present
+
+
+  1 passing (6ms)
+..............................................................................................
+
+How to build enterprise node apps?
+
+Frameworks:
+
+Web Apps:
+
+1.Express.js
+
+Fast, unopinionated, minimalist web framework for Node.js
+
+express is built on top of http core module.
 
 
 
+What apps can be built using express?
+
+
+1.RESTFull WebServices
+
+2.Dynamic content generation apps -  spring mvc, .netmvc.   with ui
+
+
+Core features of Express:
+
+1.Abstraction on core http module
+2.lot of apis to send data like json api
+3.routers : to create HTTP based web services and apps quickly.
+4.middlewares : to extend core framework like - logging,database,security,templates...
 
 
 
+Objects in express
+
+1.Application
+  We call Container object which other objects
+  entry and exit of an application
+  application is created by calling function
+
+2.Request
+
+3.Response
+
+4.Router
+
+
+1.Application object roll:
+
+-Routing HTTP requests
+-Configuring middleware
+-Rendering HTML views
+-Registering a template engine
+
+...........................................................................................
+
+
+const express = require('express');
+
+// console.log(express); //returns function
+
+//create application object by calling express()
+
+const port = 3000;
+const app =  express();
+
+// console.log(app) //express object
+
+//HTTP api
+app.get('/',(req,res)=>{
+    res.end('Express Home');
+})
+
+//start server
+
+app.listen(port,()=>{
+    console.log('Express Server is Ready!!!')
+})
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+const express = require('express');
+const port = 3000;
+const app =  express();
+
+//home page
+app.get('/',(req,res)=>{
+    res.end('Express Home');
+})
+app.get('/hello',(req,res)=>{
+    res.end('Hello Express');
+})
+app.get('/hai',(req,res)=>{
+    res.end('Hi Express');
+})
+app.get('/welcome',(req,res)=>{
+    res.end('Welcome Express');
+})
+app.listen(port,()=>{
+    console.log('Express Server is Ready!!!')
+})
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+HTTP GET,POST,DELETE,PUT:
+
+const express = require('express');
+const port = 3000;
+const app =  express();
+
+//home page
+app.get('/',(req,res)=>{
+    res.end('Express Home');
+})
+app.get('/hello',(req,res)=>{
+    res.end('Hello Express -GET');
+})
+app.post('/hello',(req,res)=>{
+    res.end('Hello Express -POST');
+})
+app.delete('/hello',(req,res)=>{
+    res.end('Hello Express -DELET');
+})
+app.put('/hello',(req,res)=>{
+    res.end('Hello Express -PUT');
+})
+
+app.get('/hai',(req,res)=>{
+    res.end('Hi Express');
+})
+app.get('/welcome',(req,res)=>{
+    res.end('Welcome Express');
+})
+app.listen(port,()=>{
+    console.log('Express Server is Ready!!!')
+})
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+JSON Data:
+..........
+
+const express = require('express');
+const { findAll } = require('./services/Todo.service')
+
+const port = 3000;
+const app = express();
+
+// console.log(app) //express object
+
+//HTTP api
+app.get('/', (req, res) => {
+    res.end('Express Home');
+})
+
+//todo api
+
+app.get('/api/todos/list', async (req, res) => {
+    try {
+        const todos = await findAll();
+        res.status(200).json(todos)
+    }
+    catch (err) {
+        res.status(404).json({ message: error })
+    }
+});
+
+//start server
+
+app.listen(port, () => {
+    console.log('Express Server is Ready!!!')
+})
+////////////////////////////////////////////////////////////////////////////////////////////
+
+Input via request events
+
+const express = require('express');
+const { findAll,create } = require('./services/Todo.service')
+
+const port = 3000;
+const app = express();
+
+// console.log(app) //express object
+
+//HTTP api
+app.get('/', (req, res) => {
+    res.end('Express Home');
+})
+
+//todo api
+
+app.get('/api/todos/list', async (req, res) => {
+    try {
+        const todos = await findAll();
+        res.status(200).json(todos)
+    }
+    catch (err) {
+        res.status(404).json({ message: error })
+    }
+});
+
+//
+app.post('/api/todos/create', async (req, res) => {
+
+    let todo = '';
+    req.on('data', chunk => {
+        todo += chunk
+        
+    })
+    
+    req.on('end', async() => {
+        try {
+            console.log('end event')
+            const result = await create(todo);
+            console.log(`result ${result}`)
+            res.status(201).location("/api/todos/create").json({ message: 'Todo Created'})
+        }
+        catch (error) {
+            res.status(404).json({ message: error })
+        }
+    });
+
+})
+
+//start server
+
+app.listen(port, () => {
+    console.log('Express Server is Ready!!!')
+})
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+					Middlewares
+.............................................................................................
+
+
+ - plugins , can  be plugged
+
+
+types of middlewares
+
+1.built in middlewares
+2.third party middlewares
+3.custom middlewares.
 
 
 
+Use case :
+ How to read JSON input. Express server need to read json which was submitted by endusers 
+User will submit as json --- express need to convert into javascript object.
+
+Without Middleware :
+
+1.we need to register on, end event for reading input
+2.we need to convert input into javascript object - JSON.parse()
+
+
+app.post('/api/todo', async (req, res) => {
+
+    let todo = '';
+    req.on('data', chunk => {
+        todo += chunk
+    })
+    
+    req.on('end', async() => {
+        try {
+            console.log(todo)
+            const todos = await create(todo);
+            res.status(201).location("/api/todo").json({ message: 'Todo Created' })
+        }
+        catch (error) {
+            res.status(500).json({ message: error })
+        }
+    });
+
+})
+
+With Middleware :
+
+-any middleware is simple javascript module/package only.
+-most of the middlewares are community driven.
+-if you want any middleware you need to install  
+
+https://expressjs.com/en/resources/middleware.html
+
+body-parser
+Node.js body parsing middleware.
+
+Parse incoming request bodies in a middleware before your handlers, available under the req.body property.
+
+Parsers supported by body-parser Middleware:
+.............................................
+
+This module provides the following parsers:
+
+1.JSON body parser
+2.Raw body parser
+3.Text body parser
+4.URL-encoded form body parser
+
+Steps:
+
+1.install middleware
+$ npm install body-parser
+
+2.Any Middleware must be registered with Application Object.
+in order to activate middleware.
+
+app.use(middleware)
+
+const express = require('express');
+const { findAll, create } = require('./services/Todo.service')
+const bodyParser = require('body-parser')
+const morgan = require('morgan')
+const path = require('path')
+const fs = require('fs')
 
 
 
+const port = 3000;
+const app = express();
+
+// create a write stream (in append mode)
+const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
+
+// setup the logger
+app.use(morgan('combined', { stream: accessLogStream }))
+//Register middlewares
+app.use(bodyParser.json())
 
 
 
+//HTTP api
+app.get('/', (req, res) => {
+    res.end('Express Home');
+})
+
+//todo api
+
+app.get('/api/todos/list', async (req, res) => {
+    try {
+        const todos = await findAll();
+        res.status(200).json(todos)
+    }
+    catch (err) {
+        res.status(404).json({ message: error })
+    }
+});
+
+//
+app.post('/api/todos/create', async (req, res) => {
+
+    try {
+        const payload = req.body;
+        const createdTodo = await create(payload);
+        res.status(201).location("/api/todo").json({ message: 'Todo Created', createdTodo })
+    }
+    catch (error) {
+        res.status(500).json({ message: error })
+    }
+
+})
+
+//start server
+
+app.listen(port, () => {
+    console.log('Express Server is Ready!!!')
+})
 
 
 

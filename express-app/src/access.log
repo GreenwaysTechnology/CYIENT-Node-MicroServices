@@ -1,0 +1,8 @@
+::1 - - [14/Jul/2021:05:40:17 +0000] "POST /api/todos/create HTTP/1.1" 201 107 "-" "PostmanRuntime/7.28.1"
+::1 - - [14/Jul/2021:05:40:32 +0000] "POST /api/todos/create HTTP/1.1" 201 107 "-" "PostmanRuntime/7.28.1"
+::1 - - [14/Jul/2021:05:40:50 +0000] "GET /api/todos/list HTTP/1.1" 200 18310 "-" "PostmanRuntime/7.28.1"
+::1 - - [14/Jul/2021:05:53:34 +0000] "GET /api/todos/list HTTP/1.1" 200 18310 "-" "PostmanRuntime/7.28.1"
+::1 - - [14/Jul/2021:05:53:51 +0000] "GET /api/todos/list HTTP/1.1" 200 18310 "-" "PostmanRuntime/7.28.1"
+::1 - - [14/Jul/2021:06:18:59 +0000] "GET /api/customers/list HTTP/1.1" 404 157 "-" "PostmanRuntime/7.28.1"
+::1 - - [14/Jul/2021:06:19:29 +0000] "GET /api/customers/list HTTP/1.1" 200 2099 "-" "PostmanRuntime/7.28.1"
+::1 - - [14/Jul/2021:06:26:59 +0000] "GET / HTTP/1.1" 200 97 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
