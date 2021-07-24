@@ -910,11 +910,1002 @@ async function main() {
     }
 }
 main();
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+Service Creation in a file and how to export,start that service
+
+
+services/math.service.js
+
+module.exports = {
+    name: 'math',
+    actions: {
+        add: {
+            params: {
+                a: 'number',
+                b: 'number'
+            },
+            handler(ctx) {
+                const { a, b } = ctx.params
+                return a + b;
+            }
+
+        }
+    }
+};
+
+services/main.service.js
+
+const { ServiceBroker } = require('moleculer');
+
+const broker = new ServiceBroker();
+
+
+async function main() {
+    broker.loadService('./services/math.service');
+    //loading multiple services
+    //broker.loadServices(folder="services",fileMask="**/*.service")
+    //load all services from the current loader
+    //broker.loadServices("./")
+
+    try {
+        await broker.start()
+        const res = await broker.call('math.add', { a: 10, b: 10 })
+        console.log(res);
+    }
+    catch (err) {
+        console.log(err);
+    }
+
+}
+main();
+
+Service Creation and loading via moleculer runner:
+
+moleculer-runner is tool used for loading services and for automation.
+
+moleculer is distributed as dev dependency, so have to use via scripts only.
+
+
+services/math.service.js
+module.exports = {
+    name: 'math',
+    actions: {
+        add: {
+            params: {
+                a: 'number',
+                b: 'number'
+            },
+            handler(ctx) {
+                const { a, b } = ctx.params
+                return a + b;
+            }
+
+        }
+    }
+};
+
+services/entry.service.js
+
+const { ServiceBroker } = require('moleculer');
+
+const broker = new ServiceBroker();
+
+broker.createService({
+    name: 'entry'
+})
+
+async function main() {
+    broker.loadService('./services/math.service');
+    try {
+        await broker.start()
+        const res = await broker.call('math.add', { a: 10, b: 10 })
+        console.log(res);
+    }
+    catch (err) {
+        console.log(err);
+    }
+
+}
+main();
+
+package.json
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+     "dev" : "moleculer-runner ./services/entry.service.js"
+  },
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+Service Methods:
+
+1.public methods
+  methods are accssiable outside 
+2.private methods
+  methods are not accssible outside
+  methods are used to isloate complex logic from public methods.
+
+
+const { ServiceBroker } = require('moleculer');
+
+const broker = new ServiceBroker();
+
+broker.createService({
+    name: 'calculator',
+    //public methods
+    actions: {
+        add(ctx) {
+            const { a, b } = ctx.params;
+            const result = this.addNumbers(a, b);
+            return result;
+        },
+        substract(ctx) {
+            const { a, b } = ctx.params;
+            const result = this.substractNumbers(a, b);
+            return result;
+        },
+    },
+    //private methods
+    methods: {
+        addNumbers(a, b) {
+            return a + b;
+        },
+        substractNumbers(a, b) {
+            return a - b;
+        }
+    }
+})
+
+
+async function main() {
+    try {
+        await broker.start()
+        const res = await broker.call('calculator.add', { a: 10, b: 10 })
+        console.log(res);
+        const res1 = await broker.call('calculator.substract', { a: 10, b: 2 })
+        console.log(res1);
+
+    }
+    catch (err) {
+        console.log(err);
+    }
+
+}
+main();
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+REPL: READ Evaulate Print Loop:
+- interactive command line tool, used for testing application.
+
+node provides REPL
+node
+
+Moleculer provides REPL Prompt for testing services interactivly.
+
+services/math.service
+
+const { ServiceBroker } = require('moleculer');
+
+const broker = new ServiceBroker();
+
+broker.createService({
+    name: 'math',
+    actions: {
+        add: {
+            params: {
+                a: 'number',
+                b: 'number'
+            },
+            handler(ctx) {
+                const { a, b } = ctx.params
+                return a + b;
+            }
+
+        }
+    }
+});
+
+async function main() {
+    try {
+        await broker.start()
+        broker.repl();        
+    }
+    catch (err) {
+        console.log(err);
+    }
+
+}
+main();
 
 
 
+npm install moleculer-repl --save-dev
+
+>node services/repl.service.js
+[2021-07-24T09:34:52.394Z] INFO  laptop-r2tggfdl-6988/BROKER: Moleculer v0.14.16 is starting...
+[2021-07-24T09:34:52.396Z] INFO  laptop-r2tggfdl-6988/BROKER: Namespace: <not defined>
+[2021-07-24T09:34:52.397Z] INFO  laptop-r2tggfdl-6988/BROKER: Node ID: laptop-r2tggfdl-6988
+[2021-07-24T09:34:52.398Z] INFO  laptop-r2tggfdl-6988/REGISTRY: Strategy: RoundRobinStrategy
+[2021-07-24T09:34:52.399Z] INFO  laptop-r2tggfdl-6988/REGISTRY: Discoverer: LocalDiscoverer
+[2021-07-24T09:34:52.407Z] INFO  laptop-r2tggfdl-6988/BROKER: Serializer: JSONSerializer
+[2021-07-24T09:34:52.419Z] INFO  laptop-r2tggfdl-6988/BROKER: Validator: FastestValidator
+[2021-07-24T09:34:52.421Z] INFO  laptop-r2tggfdl-6988/BROKER: Registered 13 internal middleware(s).
+[2021-07-24T09:34:52.440Z] INFO  laptop-r2tggfdl-6988/REGISTRY: '$node' service is registered.
+[2021-07-24T09:34:52.443Z] INFO  laptop-r2tggfdl-6988/REGISTRY: 'math' service is registered.
+[2021-07-24T09:34:52.443Z] INFO  laptop-r2tggfdl-6988/$NODE: Service '$node' started.
+[2021-07-24T09:34:52.444Z] INFO  laptop-r2tggfdl-6988/MATH: Service 'math' started.
+[2021-07-24T09:34:52.445Z] INFO  laptop-r2tggfdl-6988/BROKER: ✔ ServiceBroker with 2 service(s) is started successfully in 13ms.
+mol $ help
+
+  Commands:
+
+    help [command...]                                          Provides help for a given command.
+    q                                                          Exit application
+    actions [options]                                          List of actions
+    bench [options] <action> [jsonParams] [meta]               Benchmark a service
+    broadcast <eventName>                                      Broadcast an event
+    broadcastLocal <eventName>                                 Broadcast an event locally
+    cache keys [options]                                       List keys of cache entries
+    cache clear [pattern]                                      Clear cache entries
+    call [options] <actionName> [jsonParams] [meta]            Call an action
+    dcall [options] <nodeID> <actionName> [jsonParams] [meta]  Direct call an action
+    clear [pattern]                                            Clear cache entries
+    cls                                                        Clear console
+    destroy <serviceName> [version]                            Destroy a local service
+    emit <eventName>                                           Emit an event
+    env                                                        List of environment variables
+    events [options]                                           List of event listeners
+    info                                                       Information about broker
+    load <servicePath>                                         Load a service from file
+    loadFolder <serviceFolder> [fileMask]                      Load all services from folder
+    metrics [options]                                          List metrics
+    nodes [options]                                            List of nodes
+    services [options]                                         List of services
+
+mol $
 
 
+Services:
+
+-admin service
+   services for monitoring moleculer application
+$node
+
+-application services
+math,customer,user
+
+call math.add --a 10 --b 20
+>> Call 'math.add' with params: { a: 10, b: 20 }
+>> Execution time:592μs
+>> Response:
+30
+mol $ call math.add --a 10 --b 30
+>> Call 'math.add' with params: { a: 10, b: 30 }
+>> Execution time:653μs
+>> Response:
+40
+mol $ call math.add --a 10 --b 390
+>> Call 'math.add' with params: { a: 10, b: 390 }
+>> Execution time:473μs
+>> Response:
+400
+mol $ call math.add --a 100 --b 390
+>> Call 'math.add' with params: { a: 100, b: 390 }
+>> Execution time:551μs
+>> Response:
+490
+............................................................................................
+					Service Communication
+............................................................................................
+
+Types of services:
+
+1.Back End Services
+2.Http Services
+
+Two types of services based on communication.
+1.local service
+
+2.remote service
+
+Back End Service Communication:
+...............................
+1.local service : 
+
+ if services are running on single /same node/single broker - local services
+
+
+const { ServiceBroker } = require('moleculer');
+
+const broker = new ServiceBroker();
+
+//local services
+
+broker.createService({
+    name: 'math',
+    actions: {
+        add: {
+            params: {
+                a: 'number',
+                b: 'number'
+            },
+            handler(ctx) {
+                const { a, b } = ctx.params
+                //invoke services
+                return ctx.call('adder.add', { a: a, b: b });
+            }
+
+        }
+    }
+});
+
+
+broker.createService({
+    name: 'adder',
+    actions: {
+        add: {
+            params: {
+                a: 'number',
+                b: 'number'
+            },
+            handler(ctx) {
+                const { a, b } = ctx.params
+                return a + b;
+            }
+
+        }
+    }
+});
+
+async function main() {
+    try {
+        await broker.start()
+        broker.repl();
+    }
+    catch (err) {
+        console.log(err);
+    }
+
+}
+main();
+.............................................................................................
+					Remote Services
+...............................................................................................
+
+Steps:
+
+1.Create two services
+
+2.Run two services in a separate command prompt.
+
+3.See the output
+
+services/remote1.service.js
+const { ServiceBroker } = require('moleculer');
+const broker = new ServiceBroker();
+
+broker.createService({
+    name: 'math',
+    actions: {
+        add: {
+            params: {
+                a: 'number',
+                b: 'number'
+            },
+            handler(ctx) {
+                const { a, b } = ctx.params
+                //invoke services
+                return ctx.call('adder.add', { a: a, b: b });
+            }
+
+        }
+    }
+});
+
+async function main() {
+    try {
+        await broker.start()
+        broker.repl();
+    }
+    catch (err) {
+        console.log(err);
+    }
+
+}
+main();
+
+services/remote2.service.js
+
+    const { ServiceBroker } = require('moleculer');
+
+    const broker = new ServiceBroker();
+
+    broker.createService({
+        name: 'adder',
+        actions: {
+            add: {
+                params: {
+                    a: 'number',
+                    b: 'number'
+                },
+                handler(ctx) {
+                    const { a, b } = ctx.params
+                    return a + b;
+                }
+
+            }
+        }
+    });
+
+    async function main() {
+        try {
+            await broker.start()
+            broker.repl();
+        }
+        catch (err) {
+            console.log(err);
+        }
+
+    }
+    main();
+
+open two cmd
+>node services/remote1.service.js
+>node services/remote2.service.js
+
+from remote1.service.js , invoke method from repl
+ call math.add --a 10 --b 20
+>> Call 'math.add' with params: { a: 10, b: 20 }
+[2021-07-24T10:01:27.768Z] WARN  laptop-r2tggfdl-11112/BROKER: Service 'adder.add' is not registered.
+>> ERROR:
+ServiceNotFoundError: Service 'adder.add' is not found.
+    at ServiceBroker.findNextActionEndpoint (C:\session\CYIENT\microserviceapp\node_modules\moleculer\src\service-broker.js:1034:13)
+    at ServiceBroker.call (C:\session\CYIENT\microserviceapp\node_modules\moleculer\src\service-broker.js:1083:26)
+    at Context.call (C:\session\CYIENT\microserviceapp\node_modules\moleculer\src\context.js:289:23)
+    at Service.handler (C:\session\CYIENT\microserviceapp\services\remote1.service.js:15:28)
+    at C:\session\CYIENT\microserviceapp\node_modules\moleculer\src\utils.js:185:22
+    at processCheckResponse (C:\session\CYIENT\microserviceapp\node_modules\moleculer\src\validators\base.js:66:12)
+    at validateContextParams (C:\session\CYIENT\microserviceapp\node_modules\moleculer\src\validators\base.js:84:15)
+    at ServiceBroker.timeoutMiddleware (C:\session\CYIENT\microserviceapp\node_modules\moleculer\src\middlewares\timeout.js:35:14)
+    at ServiceBroker.fallbackMiddleware (C:\session\CYIENT\microserviceapp\node_modules\moleculer\src\middlewares\fallback.js:29:11)
+    at ServiceBroker.errorHandlerMiddleware (C:\session\CYIENT\microserviceapp\node_modules\moleculer\src\middlewares\error-handler.js:14:10)
+Data:  { action: 'adder.add' }
+
+
+-The moleculer not able to find out service from the local node, since it is running remotly
+.............................................................................................
+				Networking
+............................................................................................
+
+
+
+In order to communicate with other nodes(serviceBrokers) you need to configure a transfer.
+
+
+Transporters:
+
+-Transporter is an important module if you are running services on multiple nodes. 
+
+-Transporter communicates with other nodes. 
+
+-It transfers events, calls requests and processes responses …etc. 
+
+-If a service runs on multiple instances on different nodes, the requests will be load-balanced among live nodes.
+
+Transports:
+............
+
+Built-in transporters
+
+TCP transporter
+NATS Transporter
+Redis Transporter
+MQTT Transporter
+AMQP Transporter
+Kafka Transporter
+NATS Streaming (STAN) Transporter
+
+
+Steps;
+
+1.you have to run Transporter broker software
+
+ like redis server or nats server ,AMQP server.....
+
+NATS: Bridge :https://nats.io/download/
+
+docker run  --name nats-main -d -p 4222:4222 -p 6222:6222 -p 8222:8222 nats 
+
+
+2.you have to install transport adapter/driver
+
+npm install nats@1.4.12 --save
+
+3.Configure Service Broker with Transport
+
+services/remote1.service.js
+const { ServiceBroker } = require('moleculer');
+
+
+const broker = new ServiceBroker({
+    transporter:'nats://localhost:4222'
+});
+
+broker.createService({
+    name: 'math',
+    actions: {
+        add: {
+            params: {
+                a: 'number',
+                b: 'number'
+            },
+            handler(ctx) {
+                const { a, b } = ctx.params
+                //invoke services
+                return ctx.call('adder.add', { a: a, b: b });
+            }
+
+        }
+    }
+});
+
+async function main() {
+    try {
+        await broker.start()
+        broker.repl();
+    }
+    catch (err) {
+        console.log(err);
+    }
+
+}
+main();
+
+
+services/remote2.service.js
+
+    const { ServiceBroker } = require('moleculer');
+
+    const broker = new ServiceBroker({
+         nodeID:'Cyient-Server-2',
+         transporter:'nats://localhost:4222'
+    });
+
+    broker.createService({
+        name: 'adder',
+        actions: {
+            add: {
+                params: {
+                    a: 'number',
+                    b: 'number'
+                },
+                handler(ctx) {
+                    const { a, b } = ctx.params
+                    return `${a + b} - ${broker.nodeID}`;
+                }
+
+            }
+        }
+    });
+
+    async function main() {
+        try {
+            await broker.start()
+            broker.repl();
+        }
+        catch (err) {
+            console.log(err);
+        }
+
+    }
+    main();
+
+
+>node services/remote1.service.js
+
+
+>> Call 'math.add' with params: { a: 10, b: 20 }
+>> Execution time:13s
+>> Response:
+'30 - laptop-r2tggfdl-13600'
+mol $ call math.add --a 10 --b 20
+>> Call 'math.add' with params: { a: 10, b: 20 }
+>> Execution time:4ms
+>> Response:
+'30 - Cyient-Server-2'
+mol $ call math.add --a 10 --b 20
+>> Call 'math.add' with params: { a: 10, b: 20 }
+>> Execution time:4ms
+>> Response:
+'30 - Cyient-Server-2'
+mol $ call math.add --a 10 --b 200
+>> Call 'math.add' with params: { a: 10, b: 200 }
+>> Execution time:3ms
+>> Response:
+'210 - Cyient-Server-2'
+mol $ call math.add --a 10 --b 20000
+>> Call 'math.add' with params: { a: 10, b: 20000 }
+>> Execution time:3ms
+>> Response:
+'20010 - Cyient-Server-2'
+mol $ call math.add --a 10 --b 20000
+>> Call 'math.add' with params: { a: 10, b: 20000 }
+>> Execution time:3ms
+>> Response:
+'20010 - Cyient-Server-2'
+mol $
+.............................................................................................
+				HTTP Services
+..............................................................................................
+
+if you wanto build HTTP based services(rest apis), molculer core lib has no apis.
+
+We need to go with modules. Molculur provides modules in order to extend the basic moleculr application.
+
+Modules:
+-API Gate Module -  Web
+-Databases and Stores 
+-Micro services management
+  -Mertics and Tracing
+-Secuirty
+-Validation
+etc........
+
+-API Gate Module -  Web 
+moleculer-web:
+
+ official API Gate way module for Moleculer Framework
+
+Features:
+-support for http and https
+-serve static files
+-router supports
+-file upload support
+-alias names
+-whitelist
+-multiple body parsers-json,urlencoded
+-cors
+-Etags
+-RateLimitter
+-streaming support
+etc....
+...............................................................................................
+				Service inheritance
+
+Objective:
+
+ lets say i have a service having more methods, that i dont want to give in a service
+ i have service , that service apis , i want to reuse in service apis.
+
+Service inheritance comes into place.
+
+In molecular , a service can inherit many services - multi level, for multi level, molcular uses a concept called "mixins".
+
+mixins is a design pattern used in javascript to implement multi level inheritance like java uses interfaces.
+
+
+Use case:
+1.if you write any REST Controller.
+2.if you write database operations inside your service.
+
+
+How to write services in a different file
+
+How to do inheritance(service mixins) - mixin means multilevel 
+
+
+services/parent.service.js
+
+//service is exported
+module.exports = {
+    name: 'hello',
+    actions: {
+        //define biz api of that service
+        sayHello() {
+            return 'Hello,Moleculer'
+        }
+    }
+};
+
+services/child.service.js
+const { ServiceBroker } = require('moleculer');
+const hello = require('./parent.service');
+const { log } = console;
+const broker = new ServiceBroker();
+
+broker.createService({
+    name: 'greeter',
+    mixins: [hello], //service inheritance done
+    actions: {
+        sayGreet(){
+            return 'Hai'
+        }
+    }
+})
+async function init() {
+    try {
+        await broker.start();
+        let response;
+        response = await broker.call('greeter.sayHello')
+        log(`${response}`)
+        response = await broker.call('greeter.sayGreet')
+        log(`${response}`)
+
+    }
+    catch (e) {
+        log(e);
+    }
+}
+init();
+...............................................................................................
+
+Steps to integrate Moleculer-Web
+
+-npm install moleculer-web --save
+
+
+
+services/firstrest.service.js
+const { ServiceBroker } = require('moleculer');
+const ApiGateWay = require('moleculer-web');
+const USERS = require('../mock-data/users')
+
+const broker = new ServiceBroker();
+
+//back end services
+
+//http://localhost:3000/servicename/methodname
+//http://localhost:3000/greeter/sayHello
+
+broker.createService({
+    name: "greeter",
+    actions: {
+        sayHello() {
+            return "Hello"
+        }
+    }
+})
+
+//json 
+//http://localhost:3000/users/list
+broker.createService({
+    name: "users",
+    actions: {
+        list() {
+            return USERS
+        }
+    }
+})
+
+
+//
+
+broker.createService(ApiGateWay)
+
+
+async function main() {
+    await broker.start();
+}
+main();
+
+..............................................................................................
+
+How to override web settings?
+
+const { ServiceBroker } = require("moleculer");
+const ApiGateWayService = require("moleculer-web");
+const USERS  =require('../mock-data/users')
+
+const broker = new ServiceBroker({
+    hotReload : true
+});
+
+//back end service
+broker.createService({
+    name: "greeter",
+    actions: {
+        sayHello() {
+            return "Hello"
+        }
+    }
+})
+
+broker.createService({
+    name: "users",
+    actions: {
+        list() {
+            return USERS
+        }
+    }
+})
+
+//Frond End Service
+//entry url configuration and action configuration - frond to back end configuration
+
+broker.createService({
+    name: 'ApiGateWayService',
+    mixins: [ApiGateWayService],
+    settings: {
+        routes: [
+            {
+                path: "/api"
+
+            }
+        ]
+    }
+})
+
+
+
+async function init() {
+    try {
+        await broker.start();
+    }
+    catch (e) {
+        log(e);
+    }
+}
+init();
+
+..............................................................................................
+
+Whitelist:
+ To restrict what actions can be accessed inside service or not
+
+const { ServiceBroker } = require("moleculer");
+const ApiGateWayService = require("moleculer-web");
+const USERS  =require('../mock-data/users')
+
+const broker = new ServiceBroker({
+    hotReload : true
+});
+
+//back end service
+broker.createService({
+    name: "greeter",
+    actions: {
+        sayHello() {
+            return "Hello"
+        },
+        sayWelcome(){
+            return 'Welcome'
+        },
+        sayHai(){
+            return 'Hai'
+        }
+
+    }
+})
+
+broker.createService({
+    name: "users",
+    actions: {
+        list() {
+            return USERS
+        }
+    }
+})
+
+//Frond End Service
+//entry url configuration and action configuration - frond to back end configuration
+
+broker.createService({
+    name: 'ApiGateWayService',
+    mixins: [ApiGateWayService],
+    settings: {
+        routes: [
+            {
+                path: "/api",
+                whitelist: [
+                    //Restrict to access only sayHello action
+                    "greeter.sayHello",
+                    //Restrict to access all actions in Greeter service
+                    //"greeter.*"
+                ]               
+            }
+        ]
+    }
+})
+
+
+
+async function init() {
+    try {
+        await broker.start();
+    }
+    catch (e) {
+        log(e);
+    }
+}
+init();
+////////////////////////////////////////////////////////////////////////////////////////////
+
+URL Mapping in moleculer:
+
+http://localhost:3000/api/serviceName/actionName
+  This is not good way to map urls , which more difficult to remember, it is not user friendly
+it is not even secure,the reason, we expose the back service to end users.
+
+Aliases:
+........
+  You can use aliases(dummyname/fakename)-Virtual path, instead of action name.
+
+ settings: {
+        routes: [
+            {
+                path: "/api",
+                aliases: { 
+
+                    "hello" : "greeter.hello",
+                    "users" :  "users.list"
+                }             
+            }
+        ]
+
+http://localhost:3000/api/hello
+http://localhost:3000/api/users
+
+const { ServiceBroker } = require("moleculer");
+const ApiGateWayService = require("moleculer-web");
+const USERS = require('../mock-data/users')
+
+const broker = new ServiceBroker();
+
+//back end service
+broker.createService({
+    name: "greeter",
+    actions: {
+        sayHello() {
+            return "Hello"
+        },
+        sayWelcome() {
+            return 'Welcome'
+        },
+        sayHai() {
+            return 'Hai'
+        }
+
+    }
+})
+
+broker.createService({
+    name: "users",
+    actions: {
+        list() {
+            return USERS
+        }
+    }
+})
+
+//Frond End Service
+//entry url configuration and action configuration - frond to back end configuration
+
+broker.createService({
+    name: 'ApiGateWayService',
+    mixins: [ApiGateWayService],
+    settings: {
+        routes: [
+            {
+                path: "/api",
+                aliases: {
+                    "hello": "greeter.sayHello",
+                    "hai": "greeter.sayHai",
+                    "welcome": "greeter.sayWelcome",
+                    "users": "users.list"
+                }
+            }
+        ]
+    }
+})
+
+async function init() {
+    try {
+        await broker.start();
+    }
+    catch (e) {
+        log(e);
+    }
+}
+init();
 
 
 
