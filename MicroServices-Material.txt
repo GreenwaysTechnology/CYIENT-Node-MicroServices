@@ -1822,6 +1822,7 @@ init();
 URL Mapping in moleculer:
 
 http://localhost:3000/api/serviceName/actionName
+
   This is not good way to map urls , which more difficult to remember, it is not user friendly
 it is not even secure,the reason, we expose the back service to end users.
 
@@ -1906,6 +1907,825 @@ async function init() {
     }
 }
 init();
+..............................................................................................
+				HTTP Method Mapping
+..............................................................................................
+
+const { ServiceBroker } = require("moleculer");
+const ApiGateWayService = require("moleculer-web");
+const USERS = require('../mock-data/users')
+
+const broker = new ServiceBroker();
+
+
+broker.createService({
+    name: "users",
+    actions: {
+        list() {
+            return USERS
+        },
+        get(ctx) {
+            console.log(ctx.params)
+            return USERS.filter(user => user.id == ctx.params.id)
+        },
+        create(ctx) {
+            console.log(ctx.params)
+            return 'User Created'
+        },
+        update(ctx) {
+            return 'User updated'
+        },
+        remove(ctx) {
+            return 'User removed'
+        }
+
+    }
+})
+
+//Frond End Service
+//entry url configuration and action configuration - frond to back end configuration
+
+broker.createService({
+    name: 'ApiGateWayService',
+    mixins: [ApiGateWayService],
+    settings: {
+        routes: [
+            {
+                path: "/api",
+                aliases: {
+                    "GET users": "users.list",
+                    "GET users/:id": "users.get",
+                    "POST users": "users.create",
+                    "PUT users/:id": "users.update",
+                    "DELETE users/:id": "users.remove"
+                }
+            }
+        ]
+    }
+})
+
+async function init() {
+    try {
+        await broker.start();
+    }
+    catch (e) {
+        log(e);
+    }
+}
+init();
+////////////////////////////////////////////////////////////////////////////////////////////
+			HTTP Methods -Short Cut : Generate CURD mapping automatically
+............................................................................................
+
+SHORT Cut 
+
+ aliases: { 
+   "REST users" : "users
+ }
+
+method names:
+ list
+ get
+ create
+ update
+ remove
+
+const { ServiceBroker } = require("moleculer");
+const ApiGateWayService = require("moleculer-web");
+const USERS = require('../mock-data/users')
+
+const broker = new ServiceBroker();
+
+
+broker.createService({
+    name: "users",
+    actions: {
+        list() {
+            return USERS
+        },
+        get(ctx) {
+            console.log(ctx.params)
+            return USERS.filter(user => user.id == ctx.params.id)
+        },
+        create(ctx) {
+            console.log(ctx.params)
+            return 'User Created'
+        },
+        update(ctx) {
+            return 'User updated'
+        },
+        remove(ctx) {
+            return 'User removed'
+        }
+
+    }
+})
+
+//Frond End Service
+//entry url configuration and action configuration - frond to back end configuration
+
+broker.createService({
+    name: 'ApiGateWayService',
+    mixins: [ApiGateWayService],
+    settings: {
+        routes: [
+            {
+                path: "/api",
+                aliases: {
+                    "REST users": "users"
+                }
+            }
+        ]
+    }
+})
+
+async function init() {
+    try {
+        await broker.start();
+    }
+    catch (e) {
+        log(e);
+    }
+}
+init();
+
+..........................................................................................
+			     Request Handler - Express Syntax
+..........................................................................................
+
+const { ServiceBroker } = require("moleculer");
+const ApiGateWayService = require("moleculer-web");
+const USERS = require('../mock-data/users')
+
+const broker = new ServiceBroker();
+
+
+broker.createService({
+    name: "users",
+    actions: {
+        list() {
+            return USERS
+        },
+        get(ctx) {
+            console.log(ctx.params)
+            return USERS.filter(user => user.id == ctx.params.id)
+        },
+        create(ctx) {
+            console.log(ctx.params)
+            return 'User Created'
+        },
+        update(ctx) {
+            return 'User updated'
+        },
+        remove(ctx) {
+            return 'User removed'
+        }
+
+    }
+})
+
+//Frond End Service
+//entry url configuration and action configuration - frond to back end configuration
+
+broker.createService({
+    name: 'ApiGateWayService',
+    mixins: [ApiGateWayService],
+    settings: {
+        routes: [
+            {
+                path: "/api",
+                aliases: {
+                    "REST users": "users",
+                    "GET myapi"(req, res) {
+                        // res.end("Hello This is my api")
+                        res.end(JSON.stringify(USERS));
+                    }
+                }
+            }
+        ]
+    }
+})
+
+async function init() {
+    try {
+        await broker.start();
+    }
+    catch (e) {
+        log(e);
+    }
+}
+init();
+//////////////////////////////////////////////////////////////////////////////////////////////
+				Auto aliases: without mapping rest api 
+...............................................................................................
+
+Actions can be converted into rest api.
+
+   list:
+        {
+	  // /api/users/
+	   rest : "GET /"       
+	   handler(ctx){
+
+	   }
+        }
+
+
+const { ServiceBroker } = require("moleculer");
+const ApiGateWayService = require("moleculer-web");
+const USERS = require('../mock-data/users')
+
+const broker = new ServiceBroker();
+
+
+broker.createService({
+    name: "users",
+    actions: {
+        list: {
+            rest: "GET /",
+            handler(ctx) {
+                return USERS;
+            }
+        },
+        get: {
+            rest: "GET /:id",
+            handler(ctx) {
+                return USERS.filter(user => user.id == ctx.params.id)
+            }
+        }
+    }
+})
+
+//Frond End Service
+//entry url configuration and action configuration - frond to back end configuration
+
+broker.createService({
+    name: 'ApiGateWayService',
+    mixins: [ApiGateWayService],
+    settings: {
+        routes: [
+            {
+                path: "/api",
+                aliases: {
+
+                },
+                autoAliases: true
+            }
+        ]
+    }
+})
+
+async function init() {
+    try {
+        await broker.start();
+    }
+    catch (e) {
+        log(e);
+    }
+}
+init();
+..............................................................................................
+				    Middlewares
+..............................................................................................
+Middlewares are functions used for global functionality.
+Middleares are functions used for router level functionality.
+..............................................................................................
+    const { ServiceBroker } = require("moleculer");
+    const ApiGateWayService = require("moleculer-web");
+    const USERS = require('../mock-data/users')
+    const cookieParser = require('cookie-parser')
+    const compression = require('compression')
+    const broker = new ServiceBroker();
+
+
+    broker.createService({
+        name: "users",
+        actions: {
+            list: {
+                rest: "GET /",
+                handler(ctx) {
+                    return USERS;
+                }
+            },
+            get: {
+                rest: "GET /:id",
+                handler(ctx) {
+                    return USERS.filter(user => user.id == ctx.params.id)
+                }
+            }
+        }
+    })
+
+    //Frond End Service
+    //entry url configuration and action configuration - frond to back end configuration
+
+    broker.createService({
+        name: 'ApiGateWayService',
+        mixins: [ApiGateWayService],
+        settings: {
+
+            //global middlewares
+            use: [
+                cookieParser()
+                //helmet()
+            ],
+
+            routes: [
+                {
+                    path: "/api",
+                    //router middelware 
+                    use: [
+                        compression()
+                    ],
+
+                    aliases: {
+
+                    },
+                    autoAliases: true
+                }
+            ]
+        }
+    })
+
+    async function init() {
+        try {
+            await broker.start();
+        }
+        catch (e) {
+            log(e);
+        }
+    }
+    init();
+............................................................................................
+					CORS settings
+.............................................................................................
+
+CORS Origin Policy Settings:
+............................
+
+if any oter  appplication tries to connect microservices, shall we allow to access , what to allow
+const { ServiceBroker } = require("moleculer");
+const ApiGateWayService = require("moleculer-web");
+const USERS = require('../mock-data/users')
+const cookieParser = require('cookie-parser')
+const compression = require('compression')
+const broker = new ServiceBroker();
+
+
+broker.createService({
+    name: "users",
+    actions: {
+        list: {
+            rest: "GET /",
+            handler(ctx) {
+                return USERS;
+            }
+        },
+        get: {
+            rest: "GET /:id",
+            handler(ctx) {
+                return USERS.filter(user => user.id == ctx.params.id)
+            }
+        }
+    }
+})
+
+//Frond End Service
+//entry url configuration and action configuration - frond to back end configuration
+
+broker.createService({
+    name: 'ApiGateWayService',
+    mixins: [ApiGateWayService],
+    settings: {
+        //cors
+        cors: {
+            methods: ["GET", "POST", "DELETE", "PUT", "PATCH", "HEAD"],
+            origin: "*"
+        },
+        //global middlewares
+        use: [
+            cookieParser()
+        ],
+
+        routes: [
+            {
+                path: "/api",
+                //router middelware 
+                use: [
+                    compression()
+                ],
+
+                aliases: {
+
+                },
+                autoAliases: true
+            }
+        ]
+    }
+})
+
+async function init() {
+    try {
+        await broker.start();
+    }
+    catch (e) {
+        log(e);
+    }
+}
+init();
+..............................................................................................
+				Middleware Error Handler
+............................................................................................
+const { ServiceBroker } = require("moleculer");
+const ApiGateWayService = require("moleculer-web");
+const USERS = require('../mock-data/users')
+const cookieParser = require('cookie-parser')
+const compression = require('compression')
+const broker = new ServiceBroker();
+
+
+broker.createService({
+    name: "users",
+    actions: {
+        list: {
+            rest: "GET /",
+            handler(ctx) {
+                return USERS;
+            }
+        },
+        get: {
+            rest: "GET /:id",
+            handler(ctx) {
+                return USERS.filter(user => user.id == ctx.params.id)
+            }
+        }
+    }
+})
+
+//Frond End Service
+//entry url configuration and action configuration - frond to back end configuration
+
+broker.createService({
+    name: 'ApiGateWayService',
+    mixins: [ApiGateWayService],
+    settings: {
+        //cors
+        cors: {
+            methods: ["GET", "POST", "DELETE", "PUT", "PATCH", "HEAD"],
+            origin: "*"
+        },
+        //global middlewares
+        use: [
+            cookieParser()
+        ],
+
+        routes: [
+            {
+                path: "/api",
+                //router middelware 
+                use: [
+                    compression(),
+                    //error handler
+                    function (err, req, res, next) {
+                        //
+                        this.logger.error('Errors')
+                        this.sendError(res, res, err);
+                    }
+                ],
+
+                aliases: {
+
+                },
+                autoAliases: true
+            }
+        ]
+    }
+})
+
+async function init() {
+    try {
+        await broker.start();
+    }
+    catch (e) {
+        log(e);
+    }
+}
+init();
+.............................................................................................
+					Multi Path configuration
+..........................................................................................
+
+/api/....
+
+/admin
+
+/dashboard
+const { ServiceBroker } = require("moleculer");
+const ApiGateWayService = require("moleculer-web");
+const USERS = require('../mock-data/users')
+const cookieParser = require('cookie-parser')
+const compression = require('compression')
+const broker = new ServiceBroker();
+
+
+broker.createService({
+    name: "users",
+    actions: {
+        list: {
+            rest: "GET /",
+            handler(ctx) {
+                return USERS;
+            }
+        },
+        get: {
+            rest: "GET /:id",
+            handler(ctx) {
+                return USERS.filter(user => user.id == ctx.params.id)
+            }
+        }
+    }
+})
+
+broker.createService({
+    name: "admin",
+    actions: {
+        getAdmin() {
+            return 'admin'
+        }
+    }
+})
+
+//Frond End Service
+//entry url configuration and action configuration - frond to back end configuration
+
+broker.createService({
+    name: 'ApiGateWayService',
+    mixins: [ApiGateWayService],
+    settings: {
+        //cors
+        cors: {
+            methods: ["GET", "POST", "DELETE", "PUT", "PATCH", "HEAD"],
+            origin: "*"
+        },
+        //global middlewares
+        use: [
+            cookieParser()
+        ],
+
+        routes: [
+            {
+                path: "/admin",
+                aliases: {
+                    "GET admin": "admin.getAdmin"
+                }
+
+            },
+            {
+                path: "/api",
+                //router middelware 
+                use: [
+                    compression(),
+                    //error handler
+                    function (err, req, res, next) {
+                        //
+                        this.logger.error('Errors')
+                        this.sendError(res, res, err);
+                    }
+                ],
+
+                aliases: {
+
+                },
+                autoAliases: true
+            }
+        ]
+    }
+})
+
+async function init() {
+    try {
+        await broker.start();
+    }
+    catch (e) {
+        log(e);
+    }
+}
+init();
+//////////////////////////////////////////////////////////////////////////////////////////////
+			     Authentication and authorzation
+.............................................................................................
+
+Authorzation:
+............
+
+if want to enable authorization,
+
+we need to do two things
+
+1.set authorization: true in routes
+2.how to authorize- logic for authorization - methods - private methods for routers
+
+
+const { ServiceBroker } = require("moleculer");
+const ApiGateWayService = require("moleculer-web");
+const USERS = require('../mock-data/users')
+//error wrapper
+const E = require("moleculer-web").Errors;
+
+const broker = new ServiceBroker();
+
+
+broker.createService({
+    name: "users",
+    actions: {
+        list: {
+            rest: "GET /",
+            handler(ctx) {
+                return USERS;
+            }
+        },
+        get: {
+            rest: "GET /:id",
+            handler(ctx) {
+                return USERS.filter(user => user.id == ctx.params.id)
+            }
+        }
+    }
+})
+
+broker.createService({
+    name: 'ApiGateWayService',
+    mixins: [ApiGateWayService],
+    settings: {
+        routes: [
+            {
+                path: "/api",
+                authorization: true,
+                autoAliases: true
+            }
+        ]
+    },
+    //method for authorization
+    methods: {
+        authorize(ctx, route, req, res) {
+            //read auth info
+            const auth = req.headers["authorization"];
+            //wether token is available or not
+            if (auth && auth.startsWith("Bearer")) {
+                const token = auth.slice(7);
+                //verifi the token
+                if (token === '123456') {
+                    ctx.meta.user = { id: 1, name: 'Subramanian' }
+                    //return result
+                    return Promise.resolve(ctx);
+                }
+                else {
+                    return this.Promise.reject(new E.UnAuthorizedError(E.ERR_INVALID_TOKEN))
+                }
+
+            } else {
+                return this.Promise.reject(new E.UnAuthorizedError(E.ERR_NO_TOKEN))
+            }
+        }
+
+
+
+    }
+})
+
+async function init() {
+    try {
+        await broker.start();
+    }
+    catch (e) {
+        log(e);
+    }
+}
+init();
+
+in order to test this end Point:
+
+Note : use postman without sending authroziation header
+
+http://localhost:3000/api/users
+
+You get error :
+{
+    "name": "UnAuthorizedError",
+    "message": "Unauthorized",
+    "code": 401,
+    "type": "INVALID_TOKEN"
+}
+
+With authorzation token and value 
+Authorization : 123456
+
+You will get result
+.............................................................................................
+				Authentication
+.............................................................................................
+
+Authentication says how to enter into system- identification to enter into system.
+
+In order to enable authentication, we need to add similar configuration.
+
+1.set authentication:true in routes
+2.define authentication api method
+
+
+const { ServiceBroker } = require("moleculer");
+const ApiGateWayService = require("moleculer-web");
+const USERS = require('../mock-data/users')
+
+const broker = new ServiceBroker();
+
+
+broker.createService({
+    name: "users",
+    actions: {
+        whoami: {
+            handler(ctx) {
+                if (ctx.meta.user) {
+                    return `Hello ${ctx.meta.user.name}`
+                } else {
+                    return "Who are you?- Invalid User"
+                }
+            }
+        }
+    }
+})
+
+
+broker.createService({
+    name: 'ApiGateWayService',
+    mixins: [ApiGateWayService],
+    settings: {
+        routes: [
+            {
+                path: "/api",
+                //enable authentication
+                authentication: true,
+                aliases: {
+                    "GET whoami" : "users.whoami"
+                },
+            }
+        ]
+    },
+    methods: {
+        authenticate(ctx, route, req, res) {
+            //Get acess token
+            let accessToken = req.query['access_token'];
+            if (accessToken) {
+                if (accessToken === "12345") {
+                    const user = { id: 1, name: "Subramanian", username: "Subramanian" }
+                    return this.Promise.resolve(user)
+                } else {
+
+                }
+            } else {
+                return this.Promise.resolve(null);
+            }
+        }
+    }
+})
+
+async function init() {
+    try {
+        await broker.start();
+    }
+    catch (e) {
+        log(e);
+    }
+}
+init();
+
+
+How to test?
+
+Open PostMan : try this url without access_token value
+
+http://localhost:3000/api/whoami
+
+Response:
+"Who are you?- Invalid User"
+
+Open PostMan : try this url with access_token value
+
+In postman go to authorization tab - select Api Key --->Section --->
+
+key : access_token
+value: 12345
+AddTo : QueryParam
+
+Response:
+"Hello Subramanian"
+..............................................................................................
+					Data base Integration
+..............................................................................................
+
+
+
+
 
 
 
